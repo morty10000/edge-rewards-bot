@@ -9,3 +9,16 @@ links.json
 
 # 侦查 / 测试产物
 recon/
+
+# 本地侦查 / 调试脚本
+dash_debug.py
+dash_preview.py
+ext_diag.py
+ext_persist_check.py
+iframe_test.py
+inspect_ext_reg.py
+live_run*.py
+ntp_probe*.py
+probe*.py
+recon*.py
+validate_extension.py
