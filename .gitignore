@@ -1,0 +1,11 @@
+# 依赖 / 运行时产物（不入库）
+.venv/
+.edge-profile/
+__pycache__/
+*.pyc
+logs/
+state.json
+links.json
+
+# 侦查 / 测试产物
+recon/

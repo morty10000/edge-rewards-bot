@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "积分看板（Edge Rewards）",
+  "version": "2.0.0",
+  "description": "Edge 新标签页：必应每日壁纸 + 搜索 + 快捷方式 + 毛玻璃积分看板。数据来自本机看板服务 127.0.0.1:17173。",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "host_permissions": [
+    "http://127.0.0.1:17173/*"
+  ]
+}

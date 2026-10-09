@@ -1,0 +1,68 @@
+# edge-rewards-bot 配置
+# 所有可调参数集中在这里；页面标记在 selectors.yaml
+
+# ---- Edge 会话 ----
+edge:
+  port: 9222
+  profile_dir: ".edge-profile"     # 相对项目根目录
+  launch_on_demand: true           # CDP 不通时自动拉起 Edge
+  background: true                 # true=启动后自动最小化(后台模式); 调试时改 false 或加 --visible
+
+# ---- 搜索任务 ----
+search:
+  enabled: true
+  count: 6                         # 每日目标搜索次数
+                                   # 实测: 每次 +3 分, 约前 5 次计分 (≈15 分/天上限)
+                                   # 超出部分不扣分但无收益, 脚本另有 early-stop 熔断兜底
+  waves: 2                         # 分几波执行（拟人化）
+  min_gap_sec: 12                  # 单次搜索最小间隔
+  max_gap_sec: 30                  # 单次搜索最大间隔
+  wave_gap_sec: [90, 240]          # 波与波之间的间隔
+  dwell_sec: [2, 6]                # 结果页停留
+  stop_after_empty: 2              # 连续 N 次不加分 → 视为到达当日上限，收工
+  query_source: hot                # hot=抓必应热点 | bank=本地词库 | mix=混合
+  query_bank:
+    - "今天有什么新闻"
+    - "秋季旅游推荐"
+    - "家常菜做法"
+
+# ---- 积分面板 ----
+rewards:
+  claim_pending: true              # 领取待领取积分
+  do_activities: true              # 完成每日活动
+  verify_retry: 1                  # 单卡验证失败后的重试次数
+
+# ---- 拟人化 ----
+humanize:
+  click_gap_sec: [2, 5]            # 面板内动作间隔
+  post_claim_wait_sec: 4
+
+# ---- 后台看守 ----
+# 检测到你手动启动 Edge(主配置) 时, 自动在后台触发一轮(静默, 窗口最小化)
+watch:
+  enabled: true
+  poll_sec: 8                      # 检测轮询间隔
+  delay_sec: 75                    # 检测到 Edge 启动后, 等这么久再动手
+  debounce_sec: 10800              # 两次看守触发之间的最小间隔(秒), 默认 3 小时
+
+# ---- 看板 ----
+dashboard:
+  port: 17173                      # 本机访问 http://127.0.0.1:17173/
+
+# ---- 天气（新标签页右上角，open-meteo 数据源）----
+weather:
+  enabled: true
+  name: "佛山市"                   # 显示名
+  lat: 23.02                       # 佛山纬度
+  lon: 113.12                      # 佛山经度
+
+# ---- 通知（留空则只写日志）----
+# Server酱:  https://sctapi.ftqq.com/<key>.send
+# 企业微信:  https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...
+notify:
+  webhook_url: ""
+
+# ---- 运行 ----
+run:
+  state_file: "state.json"
+  log_dir: "logs"

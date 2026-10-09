@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新建标签页</title>
+<link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+<div id="bg"></div>
+<div class="scrim"></div>
+
+<div class="clock-chip glass" id="clockChip">
+  <span id="weather" class="wx"></span>
+  <span id="clockTime">--:--</span>
+  <span id="clockDate" class="date"></span>
+</div>
+
+<main>
+  <form class="search" id="searchForm" autocomplete="off">
+    <input id="q" type="text" placeholder="搜索网页" aria-label="搜索网页">
+    <button type="submit" aria-label="搜索">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle>
+        <path d="M20 20l-3.5-3.5"></path></svg>
+    </button>
+  </form>
+
+  <nav class="links" id="links" aria-label="快捷方式"></nav>
+
+  <section class="dock" aria-label="积分看板">
+    <div class="card glass">
+      <div class="k">当前积分</div>
+      <div class="v big" id="vBalance">—</div>
+      <div class="sub" id="vDelta">今日 —</div>
+    </div>
+    <div class="card glass">
+      <div class="k">每日活动</div>
+      <div class="v" id="vDaily">—</div>
+      <div class="bar"><i id="barDaily"></i></div>
+    </div>
+    <div class="card glass">
+      <div class="k">搜索计分</div>
+      <div class="v" id="vSearch">—</div>
+      <div class="bar"><i id="barSearch"></i></div>
+    </div>
+    <div class="card glass">
+      <div class="k">待领取</div>
+      <div class="v" id="vPending">—</div>
+      <div class="sub" id="vPendingSub">自动补领已开启</div>
+    </div>
+    <div class="card glass actions">
+      <div class="k">系统状态</div>
+      <div class="status" id="vStatus"><span class="dot"></span>加载中…</div>
+      <div class="btns">
+        <a class="btn" href="http://127.0.0.1:17173/" target="_blank" rel="noopener">完整看板</a>
+        <button class="btn primary" id="btnRun" type="button">立即运行</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">数据来源 · 本机看板服务 127.0.0.1:17173 · 每 30 秒自动刷新</footer>
+</main>
+
+<script src="newtab.js"></script>
+</body>
+</html>

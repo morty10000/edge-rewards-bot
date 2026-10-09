@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>微软积分看板</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0f1115; color:#e8eaf0;
+         font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; }
+  .wrap { max-width:1080px; margin:0 auto; padding:22px 20px 40px; }
+  header { display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .sub { color:#8b93a7; font-size:13px; }
+  .balance { font-size:42px; font-weight:650; line-height:1.1; }
+  .src { color:#6b7488; font-size:12px; margin-top:2px; }
+  .actions { margin-left:auto; display:flex; gap:8px; align-items:center; }
+  button { background:#1d2433; color:#cfe1ff; border:1px solid #2c3648;
+           border-radius:8px; padding:8px 14px; cursor:pointer; font-size:13px; }
+  button:hover { background:#243049; }
+  button:disabled { opacity:.6; cursor:default; }
+  h2 { font-size:14px; color:#8b93a7; font-weight:600; margin:26px 0 10px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .card { background:#171a21; border:1px solid #232733; border-radius:12px; padding:13px 15px; }
+  .card .k { color:#8b93a7; font-size:12px; }
+  .card .v { font-size:24px; margin-top:5px; font-weight:600; }
+  .card .n { color:#6b7488; font-size:11px; margin-top:3px; }
+  .bar { height:6px; background:#232733; border-radius:3px; overflow:hidden; margin-top:9px; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,#4d9fff,#37d0a4); }
+  .chart { display:flex; align-items:flex-end; gap:6px; height:150px;
+           background:#141721; border:1px solid #232733; border-radius:12px;
+           padding:26px 12px 26px; position:relative; }
+  .chart .col { flex:1; display:flex; flex-direction:column; justify-content:flex-end;
+                align-items:center; height:100%; position:relative; }
+  .chart .b { width:70%; background:linear-gradient(180deg,#4d9fff,#2b6fd4);
+              border-radius:4px 4px 0 0; min-height:2px; }
+  .chart .col .d { position:absolute; bottom:-20px; color:#6b7488; font-size:10px; }
+  .chart .col .t { position:absolute; top:-20px; color:#9aa4b8; font-size:10px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:7px 8px; border-bottom:1px solid #1e222c; }
+  th { color:#8b93a7; font-weight:600; font-size:12px; }
+  .sys { display:flex; gap:18px; flex-wrap:wrap; color:#9aa4b8; font-size:13px; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%;
+         margin-right:6px; vertical-align:1px; }
+  .ok{background:#3ecf8e} .bad{background:#e5484d}
+  #logbox { background:#0b0d12; border:1px solid #232733; border-radius:10px;
+            padding:12px; font:12px/1.6 Consolas,"Courier New",monospace;
+            color:#9aa4b8; white-space:pre-wrap; max-height:240px; overflow:auto; }
+  .muted { color:#6b7488; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="sub">微软积分 · 自动任务看板</div>
+      <div class="balance" id="balance">—</div>
+      <div class="src" id="balance-src"></div>
+    </div>
+    <div class="actions">
+      <button onclick="doLive(this)">实时读取</button>
+      <button onclick="doRun(this)">立即运行</button>
+      <span class="muted" id="stamp">加载中…</span>
+    </div>
+  </header>
+
+  <h2>今日战报</h2>
+  <div class="cards" id="cards"></div>
+
+  <h2>任务进度</h2>
+  <div class="cards" id="progress"></div>
+
+  <h2>近 14 天收益（Δ 分/天）</h2>
+  <div class="chart" id="chart"></div>
+
+  <h2>最近运行</h2>
+  <table>
+    <thead><tr><th>时间</th><th>Δ</th><th>领取</th><th>活动</th><th>搜索</th><th>备注</th></tr></thead>
+    <tbody id="runs"></tbody>
+  </table>
+
+  <h2>系统状态</h2>
+  <div class="sys" id="sys"></div>
+
+  <h2>今日日志</h2>
+  <div id="logbox"></div>
+  <div class="muted" style="margin-top:10px">数据源：state.json / logs · 每 10 秒自动刷新</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function pbar(done, total) {
+  const w = total ? Math.max(0, Math.min(100, done / total * 100)) : 0;
+  return '<div class="bar"><i style="width:' + w + '%"></i></div>';
+}
+function card(k, v, n) {
+  return '<div class="card"><div class="k">' + k + '</div><div class="v">' + esc(v) +
+         '</div><div class="n">' + esc(n || '') + '</div></div>';
+}
+function card2(k, done, total, n) {
+  return '<div class="card"><div class="k">' + k + '</div><div class="v">' + done + ' / ' +
+         total + '</div>' + pbar(done, total) +
+         (n ? '<div class="n">' + n + '</div>' : '') + '</div>';
+}
+
+async function jget(u) { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); }
+async function jpost(u) { const r = await fetch(u, {method:'POST'}); return r.json(); }
+
+async function doLive(btn) {
+  const old = btn.textContent; btn.textContent = '读取中…'; btn.disabled = true;
+  try { const r = await jpost('/api/live');
+        if (!r.ok) alert('实时读取失败：' + (r.msg || '未知错误')); }
+  catch (e) { alert('实时读取失败：' + e); }
+  btn.textContent = old; btn.disabled = false;
+  refresh();
+}
+async function doRun(btn) {
+  const old = btn.textContent; btn.textContent = '触发中…'; btn.disabled = true;
+  try { const r = await jpost('/api/run'); alert(r.msg || ''); }
+  catch (e) { alert('触发失败：' + e); }
+  btn.textContent = old; btn.disabled = false;
+  setTimeout(refresh, 3000);
+}
+
+function render(d) {
+  const live = d.live;
+  $('balance').textContent = d.balance == null ? '—' : Number(d.balance).toLocaleString();
+  $('balance-src').textContent = d.balance_src || '';
+  $('stamp').textContent = '刷新于 ' + (d.now || '').slice(11);
+
+  const ts = d.today_stats || {};
+  $('cards').innerHTML =
+    card('今日收益', '+' + (ts.delta ?? 0) + ' 分', (ts.runs || 0) + ' 次运行') +
+    card('今日领取', (ts.claimed ?? 0) + ' 分', '含待领取补领') +
+    card('今日活动', (ts.activities ?? 0) + ' 个', '每日活动 + 日常任务') +
+    card('今日搜索', (ts.searches ?? 0) + ' / ' + d.search_target, '打满后自动跳过');
+
+  const p = d.progress || {};
+  const dl = (live && live.dailyset) || p.dailyset;
+  const se = (live && live.search) || p.search;
+  const ap = (live && live.app) || p.app;
+  const pd = live ? live.pending : p.pending;
+  let prog = '';
+  if (dl) prog += card2('每日活动', dl.done, dl.total);
+  if (se) prog += card2('搜索打卡', se.done, se.total);
+  if (ap) prog += card2('应用签到', ap.done, ap.total, '移动端专属，桌面跳过');
+  prog += card('待领取', (pd ?? 0) + ' 分', '实时读取可立即刷新');
+  $('progress').innerHTML = prog;
+
+  const hist = d.history || [];
+  const max = Math.max(10, ...hist.map(h => h.delta || 0));
+  $('chart').innerHTML = hist.map(h => {
+    const hh = Math.round((h.delta || 0) / max * 100);
+    return '<div class="col" title="' + esc(h.date) + '：+' + (h.delta || 0) +
+           ' 分（余额 ' + (h.balance ?? '—') + '）">' +
+           '<div class="t">' + (h.delta || 0) + '</div>' +
+           '<div class="b" style="height:' + hh + '%"></div>' +
+           '<div class="d">' + (h.date || '').slice(5) + '</div></div>';
+  }).join('') || '<div class="muted">暂无数据</div>';
+
+  const runs = (d.runs || []).slice().reverse();
+  $('runs').innerHTML = runs.map(r => {
+    const t = (r.ts || '').replace('T', ' ').slice(5, 16);
+    const cl = (r.claimed || 0) + (r.claimed_extra || 0);
+    const ac = (r.activities_done || []).length;
+    const s = r.searches || {};
+    const note = (s.notes || []).join('；') || (s.skipped ? '搜索已打满，跳过' : '');
+    return '<tr><td>' + t + '</td><td>+' + (r.delta ?? 0) + '</td><td>' + cl +
+           '</td><td>' + ac + '</td><td>' + (s.done ?? 0) + '</td>' +
+           '<td class="muted">' + esc(note) + '</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="muted">暂无记录</td></tr>';
+
+  const sys = d.system || {};
+  const dot = v => '<span class="dot ' + (v ? 'ok' : 'bad') + '"></span>';
+  let html = dot(sys.watcher) + '看守 ' + (sys.watcher ? '运行中' : '未运行') +
+    '<span style="margin-left:14px">' + dot(!sys.bot_running) + 'Bot ' +
+    (sys.bot_running ? '运行中' : '空闲') + '</span>' +
+    '<span style="margin-left:14px">' + dot(sys.edge_cdp) + 'Edge ' +
+    (sys.edge_cdp ? '在线' : '离线') + '</span>';
+  (sys.tasks || []).forEach(t => {
+    html += '<span style="margin-left:14px">' + dot(!t.error && t.result === 0) +
+      esc(t.name) + ' · 下次 ' + esc(String(t.next || '—').replace(/^\d+\/\d+\/\d+ /, '')) +
+      (t.error ? ' · ' + esc(t.error) : ' · 上次结果 ' + t.result) + '</span>';
+  });
+  $('sys').innerHTML = html;
+
+  $('logbox').textContent = (d.log_tail || []).join('\n') || '（今日暂无日志）';
+}
+
+async function refresh() {
+  try { render(await jget('/api/state')); }
+  catch (e) { $('stamp').textContent = '连接失败：' + e; }
+}
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

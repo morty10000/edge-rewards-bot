@@ -1,0 +1,29 @@
+# 页面标记与选择器 —— 微软改版后优先只改这里
+# （任务文本标记、关键元素选择器、积分解析正则）
+
+flyout_url: "https://rewards.bing.com/flyout?channel=bingflyout&partnerId=BingRewards&isDarkMode=0&ru=https%3A%2F%2Fcn.bing.com%2F"
+home_url: "https://cn.bing.com/"
+
+# 主页
+search_box_selector: "#sb_form_q"
+medallion_selector: "#rh_rwm"
+medallion_data_attr: "data-content"       # base64 JSON: {balance: ...}
+
+# 面板（flyout）
+claim_button_text: "领取"
+pending_button_text: "待领取积分"
+pending_regex: "(\\d+)\\s*个待领取积分"
+done_marker: "已完成"
+card_link_selector: 'a[href*="bing.com/search"]'
+
+# 打卡状态解析
+search_streak_regex: "搜索:\\s*(\\d+)/(\\d+)"
+dailyset_streak_regex: "活动:\\s*(\\d+)/(\\d+)"
+app_streak_regex: "签到:\\s*(\\d+)/(\\d+)"
+
+# 风控/异常信号（命中即熔断）
+block_signals:
+  - "异常流量"
+  - "可疑活动"
+  - "验证你是人类"
+  - "unusual activity"

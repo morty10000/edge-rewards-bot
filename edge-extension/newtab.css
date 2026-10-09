@@ -1,0 +1,234 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  color: #fff;
+  min-height: 100vh;
+  background-color: #101823;
+}
+
+/* 壁纸: JS 加载成功后淡入 */
+#bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: center / cover no-repeat;
+  opacity: 0;
+  transition: opacity .9s ease;
+}
+#bg.on { opacity: 1; }
+
+/* 极淡暗角, 仅保证文字可读性, 不遮挡壁纸 */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(5, 9, 16, .30) 0%,
+    rgba(5, 9, 16, .05) 26%,
+    rgba(5, 9, 16, .03) 55%,
+    rgba(5, 9, 16, .36) 100%);
+}
+
+/* ---------- 毛玻璃基底 ---------- */
+.glass {
+  background: rgba(17, 21, 30, .35);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, .18);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .12);
+  border-radius: 18px;
+}
+
+/* ---------- 顶部时钟 ---------- */
+.clock-chip {
+  position: fixed;
+  top: 22px;
+  right: 26px;
+  z-index: 6;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+.clock-chip .wx { font-size: 13px; opacity: .92; }
+.clock-chip .wx:not(:empty) { margin-right: 8px; }
+.clock-chip #clockTime { font-size: 16px; font-weight: 600; letter-spacing: .5px; }
+.clock-chip .date { font-size: 12px; opacity: .78; }
+
+/* ---------- 主列 ---------- */
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15vh 28px 46px;
+}
+
+/* 搜索（仿原生 NTP：白底 + 右端蓝色放大镜按钮） */
+.search {
+  width: min(640px, 92vw);
+  height: 54px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .97);
+  border: 1px solid rgba(255, 255, 255, .55);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .30);
+  overflow: hidden;
+}
+.search input {
+  flex: 1;
+  height: 100%;
+  padding-left: 22px;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #1c1c1c;
+  font-size: 16px;
+  font-family: inherit;
+}
+.search input::placeholder { color: #5f6368; }
+.search button {
+  flex: none;
+  align-self: stretch;
+  width: 92px;
+  margin: 0;
+  border: 0;
+  border-radius: 0 999px 999px 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  background: #0078d4;
+  color: #fff;
+  font-family: inherit;
+  transition: background .15s ease;
+}
+.search button:hover { background: #106ebe; }
+
+/* 快捷方式（白色圆角底 + 图标，尺寸对齐原生 NTP ≈40px） */
+.links {
+  margin-top: 36px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 6px;
+  width: min(1100px, 94vw);
+}
+.link {
+  width: 100px;
+  padding: 8px 4px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #fff;
+  transition: background .15s ease;
+}
+.link:hover { background: rgba(255, 255, 255, .10); }
+.link .tile {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: #333;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .16);
+}
+.link .tile img { width: 25px; height: 25px; border-radius: 6px; }
+.link .label {
+  font-size: 12px;
+  max-width: 96px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .55);
+  opacity: .96;
+}
+
+/* 看板卡片 */
+.dock {
+  margin-top: 42px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: min(1140px, 96vw);
+}
+.card { min-width: 148px; padding: 13px 17px 15px; }
+.card .k {
+  font-size: 11px;
+  letter-spacing: .3px;
+  color: rgba(255, 255, 255, .64);
+  margin-bottom: 7px;
+}
+.card .v { font-size: 21px; font-weight: 650; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.card .v.big { font-size: 32px; }
+.card .sub { margin-top: 6px; font-size: 11px; color: rgba(255, 255, 255, .64); }
+
+.bar {
+  margin-top: 10px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  overflow: hidden;
+}
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5aa2ff, #43d4a2);
+  transition: width .5s ease;
+}
+
+.card.actions { min-width: 200px; }
+.status { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #43d4a2;
+  box-shadow: 0 0 8px rgba(67, 212, 162, .8);
+  flex: none;
+}
+.dot.red { background: #ff6b6b; box-shadow: 0 0 8px rgba(255, 107, 107, .8); }
+
+.btns { display: flex; gap: 8px; margin-top: 10px; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 29px;
+  padding: 0 13px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s ease;
+}
+.btn:hover { background: rgba(255, 255, 255, .24); }
+.btn.primary { background: rgba(74, 140, 255, .55); border-color: rgba(122, 172, 255, .65); }
+.btn.primary:hover { background: rgba(92, 156, 255, .72); }
+.btn:disabled { opacity: .6; cursor: default; }
+
+.foot {
+  margin-top: auto;
+  padding-top: 40px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, .5);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+}
