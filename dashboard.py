@@ -300,6 +300,10 @@ def build_state():
 
     last = runs[-1] if runs else {}
     streaks = last.get("streaks") or {}
+    # 跨天快照作废：最近一轮不是"今天"的 → 进度归零（保留卡片总数）
+    if last and last.get("date") != today:
+        streaks = {k: {"done": 0, "total": (streaks.get(k) or {}).get("total")}
+                   for k in ("dailyset", "search", "app")}
     progress = {
         "dailyset": streaks.get("dailyset"),
         "search": streaks.get("search"),
