@@ -49,6 +49,8 @@ logs/              运行日志（本地生成，不入库）
    **手动启动 Edge** 时自动在后台跑一轮（无控制台、浏览器窗口最小化）。
    当天已跑过自动跳过，3 小时内不重复；看板服务每 2 分钟保活（看守意外
    退出会自动拉起）；总开关：config.yaml 中 `watch.enabled`。
+   - 自启：计划任务 `EdgeRewards-Services`（登录触发，不依赖资源管理器）
+     + 启动文件夹快捷键双保险；重复启动由单实例锁自动去重
    - 调试观察：`logs/watch.log`
    - 临时禁用：删除启动文件夹中的 `EdgeRewardsWatch.lnk`（并结束 pythonw 进程）
    - 关闭后台最小化：config.yaml 中 `edge.background: false`，或运行 `main.py --visible`
@@ -86,7 +88,8 @@ Edge 书签（custom_links）、Edge 常用站点（Top Sites）。
 
 说明：
 
-- 依赖本机看板服务（127.0.0.1:17173，登录自启）；卡片显示「看板服务未连接」时运行 `.venv\Scripts\pythonw.exe dashboard.py`
+- 依赖本机看板服务（127.0.0.1:17173，登录自启）；服务暂不可用时页面自动降级，
+  恢复后 30 秒内自动补全（无需刷新）；手动启动：`.venv\Scripts\pythonw.exe dashboard.py`
 - 不想要看板：`edge://extensions` 里禁用/移除「积分看板（Edge Rewards）」即恢复原生新标签页
 - 壁纸为必应每日图（实时），离线时自动回退纯色
 

@@ -1,6 +1,7 @@
 // 新标签页看板：壁纸 + 搜索 + 快捷方式 + 毛玻璃积分面板
 const API = "http://127.0.0.1:17173";
 const $ = (id) => document.getElementById(id);
+let wallpaperOk = false, linksOk = false, weatherOk = false;
 
 /* ---------- 时钟 ---------- */
 function tickClock() {
@@ -36,6 +37,7 @@ async function loadWallpaper() {
       const bg = $("bg");
       bg.style.backgroundImage = 'url("' + w.url + '")';
       bg.classList.add("on");
+      wallpaperOk = true;
     };
     img.src = w.url;
   } catch (e) { /* 失败时保持纯色背景 */ }
@@ -54,7 +56,7 @@ function faviconFor(u) {
 }
 async function loadLinks() {
   let items = [];
-  try { items = await jget("/api/quicklinks"); } catch (e) { items = []; }
+  try { items = await jget("/api/quicklinks"); linksOk = true; } catch (e) { items = []; }
   if (!Array.isArray(items) || !items.length) {
     items = [
       { title: "积分看板", url: "http://127.0.0.1:17173/" },
@@ -166,6 +168,7 @@ async function loadWeather() {
   try {
     const w = await jget("/api/weather");
     if (!w || w.temp == null) return;
+    weatherOk = true;
     $("weather").textContent =
       (w.name ? w.name + " " : "") + (w.icon || "") + Math.round(w.temp) + "\u00b0";
   } catch (e) { /* 离线时保持空 */ }
@@ -178,3 +181,8 @@ loadState();
 loadWeather();
 setInterval(loadState, 30000);
 setInterval(loadWeather, 30 * 60 * 1000);
+setInterval(() => {        // 服务曾掉线时的自愈重试
+  if (!wallpaperOk) loadWallpaper();
+  if (!linksOk) loadLinks();
+  if (!weatherOk) loadWeather();
+}, 30000);

@@ -453,6 +453,13 @@ def main():
         with open(logf, "a", encoding="utf-8") as f:
             f.write(line + "\n")
 
+    lock = socket.socket()          # 单实例锁（多自启机制并存时防重复）
+    try:
+        lock.bind(("127.0.0.1", 49519))
+    except OSError:
+        dlog("[dashboard] another instance is running; exit")
+        return
+
     try:
         srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     except OSError as e:
