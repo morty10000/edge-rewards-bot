@@ -66,7 +66,9 @@ async function loadLinks() {
   }
   const box = $("links");
   box.textContent = "";
-  for (const it of items.slice(0, 12)) {
+  // 只排一行：按容器宽度计算每行放得下的数量（每格 100px + 6px 间距）
+  const perRow = Math.max(1, Math.floor((box.clientWidth || 1100) / 106));
+  for (const it of items.slice(0, perRow)) {
     const a = document.createElement("a");
     a.className = "link";
     a.href = it.url;
