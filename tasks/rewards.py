@@ -132,10 +132,28 @@ def _click_card(ctx, page, card, log):
         return False
 
 
+def read_manual_cards(page):
+    """非搜索类（拼图等 spotlight 活动）未完成的卡片"""
+    js = """() => [...document.querySelectorAll('a')].map(a => ({
+        href: a.href || '',
+        text: (a.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 160),
+        done: (a.textContent || '').includes('\u5df2\u5b8c\u6210')
+    })).filter(x => !x.done && !x.href.includes('bing.com/search')
+               && (x.href.includes('spotlight') || /\+\d+/.test(x.text)))"""
+    try:
+        return page.evaluate(js)
+    except Exception:
+        return []
+
+
 def do_activities(ctx, page, cfg, log):
     """逐个完成未完成的每日活动卡；返回（本次完成标题列表, 最终状态）"""
     retry = int(cfg["rewards"]["verify_retry"])
     finished = []
+    manual = read_manual_cards(page)
+    for m in manual:
+        log(f"[activity] MANUAL needed: {m['text'][:40]}")
+        log(f"[activity]   url: {m['href'][:160]}")
     for rnd in range(retry + 1):
         undone = [c for c in read_cards(page) if not c["done"]]
         if not undone:
@@ -156,4 +174,6 @@ def do_activities(ctx, page, cfg, log):
             cfg_gap = cfg["humanize"]["click_gap_sec"]
             time.sleep(cfg_gap[0] + (cfg_gap[1] - cfg_gap[0]) * 0.4)
     reload_flyout(page)
-    return finished, read_state(page)
+    st = read_state(page)
+    st["manual_cards"] = manual
+    return finished, st

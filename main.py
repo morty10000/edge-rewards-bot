@@ -112,6 +112,7 @@ def main():
                 done, st2 = rewards.do_activities(ctx, fly, cfg, log)
                 summary["activities_done"] = done
                 summary["dailyset_after"] = st2["dailyset"]
+                summary["manual_cards"] = st2.get("manual_cards") or []
             else:
                 summary["activities_done"] = []
 
@@ -170,7 +171,8 @@ def main():
         f"日期: {summary['date']}",
         f"余额: {before.get('balance')} -> {after.get('balance')}  (Δ {delta})",
         f"领取: {summary.get('claimed', 0) + summary.get('claimed_extra', 0)} 分",
-        f"每日活动完成: {len(summary.get('activities_done', []))} 个",
+        f"每日活动完成: {len(summary.get('activities_done', []))} 个"
+        + (f" / 待手动 {len(summary['manual_cards'])} 张（拼图类）" if summary.get('manual_cards') else ""),
         f"搜索: {(summary.get('searches') or {}).get('done', 0)} 次",
         f"日志: {log_path.name}",
     ]
